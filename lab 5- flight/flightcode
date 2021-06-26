@@ -1,0 +1,169 @@
+DROP DATABASE IF EXISTS Flight;
+CREATE DATABASE Flight;
+USE Flight;
+
+
+DROP TABLE IF EXISTS Flights,
+					 Aircraft,
+					 Certified,
+					 Employees;
+ 
+ 
+CREATE TABLE FLights (
+    flno INT,
+    f_from VARCHAR(40),
+    f_to VARCHAR(40),
+    distance INT,
+    departs TIME,
+    arrives TIME,
+    price INT,
+    PRIMARY KEY (flno)
+);
+
+CREATE TABLE Aircraft (
+    aid INT,
+    flno INT,
+    aname VARCHAR(40),
+    cruisingrange INT,
+    PRIMARY KEY (aid),
+    FOREIGN KEY (flno)
+        REFERENCES Flights (flno) ON DELETE CASCADE
+);
+
+CREATE TABLE Employees (
+    eid INT,
+    ename VARCHAR(40),
+    salary INT,
+    PRIMARY KEY (eid)
+);
+
+CREATE TABLE Certified (
+    eid INT,
+    aid INT,
+    FOREIGN KEY (eid)
+        REFERENCES Employees (eid) ON DELETE CASCADE,
+    FOREIGN KEY (aid)
+        REFERENCES Aircraft (aid) ON DELETE CASCADE
+);
+
+
+INSERT INTO Flights VALUES (101,'Bangalore','Delhi',2500,TIMESTAMP '2005-05-13 07:15:31',TIMESTAMP '2005-05-13 17:15:31',5000),
+						   (102,'Bangalore','Lucknow',3000,TIMESTAMP '2005-05-13 07:15:31',TIMESTAMP '2005-05-13 11:15:31',6000),
+                           (103,'Lucknow','Delhi',500,TIMESTAMP '2005-05-13 12:15:31',TIMESTAMP ' 2005-05-13 17:15:31',3000),
+                           (107,'Bangalore','Frankfurt',8000,TIMESTAMP '2005-05-13  07:15:31',TIMESTAMP '2005-05-13 22:15:31',60000),
+                           (104,'Bangalore','Frankfurt',8500,TIMESTAMP '2005-05-13 07:15:31',TIMESTAMP '2005-05-13 23:15:31',75000),
+                           (105,'Kolkata','Delhi',3400,TIMESTAMP '2005-05-13 07:15:31',TIMESTAMP  '2005-05-13 09:15:31',7000);
+                           
+INSERT INTO Aircraft VALUES (101,103,'747',3000),
+							(102,104,'Boeing',900),
+                            (103,101,'647',800),
+                            (104,102,'Dreamliner',10000),
+                            (105,105,'Boeing',3500),
+                            (106,104,'707',1500),
+                            (107,103,'Dream', 120000);
+                            
+INSERT INTO Employees VALUES (701,'A',50000),
+							 (702,'B',100000),
+                             (703,'C',150000),
+                             (704,'D',90000),
+                             (705,'E',40000),
+                             (706,'F',60000),
+                             (707,'G',90000);
+                             
+INSERT INTO Certified VALUES (701,101),
+							 (701,102),
+                             (701,106),
+                             (701,105),
+                             (702,104),
+                             (703,104),
+                             (704,104),
+                             (702,107),
+                             (703,107),
+                             (704,107),
+                             (702,101),
+                             (703,105),
+                             (704,105),
+                             (705,103);
+
+
+SELECT * FROM Flights;
+    
+SELECT * FROM Aircraft;   
+
+SELECT * FROM Employees;
+    
+SELECT * FROM Certified;
+    
+
+SELECT DISTINCT
+    aname
+FROM
+    Aircraft a,
+    Certified c,
+    Employees e
+WHERE
+    a.aid = c.aid AND c.eid = e.eid
+        AND salary > 80000;     
+        
+
+SELECT 
+    e.eid, MAX(cruisingrange) AS maximum_cruisingrange
+FROM
+    Aircraft a,
+    Certified c,
+    Employees e
+WHERE
+    a.aid = c.aid AND c.eid = e.eid
+GROUP BY c.eid
+HAVING COUNT(c.aid) > 3;
+
+
+SELECT 
+    ename
+FROM
+    Employees
+WHERE
+    salary < (SELECT 
+            MIN(price)
+        FROM
+            Flights
+        WHERE
+            f_from = 'Bangalore'
+                AND f_to = 'Frankfurt');
+                
+
+SELECT 
+    aname, AVG(salary) AS average_salary_employees
+FROM
+    Aircraft a,
+    Certified c,
+    Employees e
+WHERE
+    a.aid = c.aid AND c.eid = e.eid
+        AND cruisingrange > 1000
+GROUP BY a.aid;
+
+
+SELECT DISTINCT
+    ename
+FROM
+    Aircraft a,
+    Certified c,
+    Employees e
+WHERE
+    a.aid = c.aid AND c.eid = e.eid
+        AND aname = 'Boeing';
+        
+        
+SELECT 
+    aid
+FROM
+    Aircraft
+WHERE
+    aid IN (SELECT 
+            flno
+        FROM
+            Flights
+        WHERE
+            f_from = 'Bangalore'
+                AND f_to = 'Delhi');
